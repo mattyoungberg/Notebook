@@ -17,7 +17,7 @@ def _parse_note(file_path):
 class Notebook:
     """This class is implemented so as to be an interface for all notes existing within the program"""
     def __init__(self):
-        self._notes = list()
+        self._notes = dict()
         self._next_id = 1
         self._load_notes()
         self._get_next_id()
@@ -29,18 +29,20 @@ class Notebook:
         files = listdir('notes')
         if files:
             for note in files:
-                self._notes.append(_parse_note('notes\\' + note))
+                new_note = _parse_note('notes\\' + note)
+                self._notes[new_note.identifier] = new_note
         return
 
     def _get_next_id(self):
         """Derives and sets the id that the next note should be if it is created"""
         if self._notes:
-            self._next_id = max([note.identifier for note in self._notes]) + 1
+            self._next_id = max(self._notes, key=int) + 1
         return
 
     def add_note(self, tags, memo):
         """Adds a note to the notebook and writes it to the 'notes/' directory"""
-        self._notes.append(Note(self._next_id, tags, memo))
+        new_note = Note(self._next_id, tags, memo)
+        self._notes[new_note.identifier] = new_note
         self._get_next_id()
         return
 
@@ -49,16 +51,13 @@ class Notebook:
         pass
 
     def delete_note(self, identifier):
-        """Deletes a note via it's ID. Returns true if found and deleted, false otherwise."""
-        for i, note in enumerate(self._notes):
-            if note.identifier == identifier:
-                del self._notes[i]
-                delete_file(note.path)
-                self._get_next_id()
-                return True
+        """Deletes a note via its ID. Returns true if found and deleted, false otherwise."""
+        if identifier in self._notes:
+            delete_file(self._notes[identifier].path)
+            del self._notes[identifier]
         return False
 
-    def edit_note(self, note, identifier):
+    def edit_note(self, identifier):
         pass
 
 
